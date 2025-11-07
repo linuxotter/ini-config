@@ -4,7 +4,7 @@ import string
 from typing import Any, Callable
 from pathlib import Path
 
-from config_parser import ConfigParser
+from ini_config import IniConfig
 
 class TestCfg:
     '''Эмуляция загрузки конфигурации из файла'''
@@ -17,6 +17,7 @@ class TestCfg:
         self._types: tuple[Callable[[str], Any], ...] = (int, str, bool)
         self._config: dict[str, dict[str, Any]] = {}
         self._param_types: dict[str, dict[str, Callable[[str], Any]]] = {}
+        self._default: dict[str, dict[str, Any]] = {}
 
     def create_rnd_cfg(self) -> None:
         '''Создание случайной корректной конфигурации'''
@@ -29,6 +30,7 @@ class TestCfg:
                 if not self._param_types.get(section_name): 
                     self._param_types[section_name] = {}
                     self._config[section_name] = {}
+                    self._default[section_name] = {}
                 
                 param_type = random.choice(self._types)
                 if param_type is int:
@@ -41,22 +43,26 @@ class TestCfg:
                 
                 self._param_types[section_name][param_name] = param_type
                 self._config[section_name][param_name] = value
+                self._default[section_name][param_name] = None
 
     def add_section(self, name: str) -> None:
         '''Добавление секции конфигурации'''
         self._config[name] = {}
         self._param_types[name] = {}
+        self._default[name] = {}
 
     def add_param(
             self,
             name: str,
             section: str,
             val: Any,
-            type: Callable[[str], Any]
+            type: Callable[[str], Any],
+            default : Any = None
     ) -> None:
         '''Добавление параметра'''
         self._config[section][name] = val
         self._param_types[section][name] = type
+        self._default[section][name] = default if default else None
 
     def make_file(self, tmp_path: Path) -> str:
         '''Создание тестового файла конфигурации'''
@@ -73,12 +79,16 @@ class TestCfg:
 
     def make_parser(self):
 
-        cfg_parser = ConfigParser()
+        cfg_parser = IniConfig()
 
         for section in self._config:
             cfg_section = cfg_parser.add_section(section)
             for param in self._config[section]:
-                cfg_section.add_param(name = param, type = self._param_types[section][param])
+                cfg_section.add_param(
+                    param_name = param,
+                    param_type = self._param_types[section][param],
+                    default = self._default[section][param]
+                )
 
         return cfg_parser
 
@@ -87,6 +97,10 @@ class TestCfg:
         dict[str, dict[str, Callable[[str], Any]]]
     ]:
         return self._config, self._param_types
+
+    def clear(self) -> None:
+        self._config = {}
+        self._param_types = {}
 
 
 @pytest.fixture

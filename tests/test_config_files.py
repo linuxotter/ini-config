@@ -1,12 +1,12 @@
 import pytest
-from config_parser import ConfigParser, ConfigError
+from ini_config import IniConfig, ConfigError
 from pathlib import Path
 import os
 
 def test_no_cfg_file() -> None:
     '''Тест отстутствия файла конфигурации'''
 
-    config = ConfigParser()
+    config = IniConfig()
     with pytest.raises(ConfigError) as err:
         config.parse_file('not_exists')
 
@@ -20,7 +20,7 @@ def test_unreadable_cfg_file(tmp_path: Path) -> None:
         pass
     os.chmod(unreadable_cfg, 0x000)
 
-    config = ConfigParser()
+    config = IniConfig()
     with pytest.raises(ConfigError) as err:
         config.parse_file(str(unreadable_cfg))
     os.chmod(unreadable_cfg, 0x777)
@@ -32,7 +32,7 @@ def test_unreadable_cfg_dir(tmp_path: Path) -> None:
     unreadable_cfg_dir = tmp_path
     os.chmod(tmp_path, 0x000)
 
-    config = ConfigParser()
+    config = IniConfig()
     with pytest.raises(ConfigError) as err:
         config.parse_file(str(unreadable_cfg_dir / 'cfg_file'))
     os.chmod(tmp_path, 0x777)
@@ -45,7 +45,7 @@ def test_corrupted_cfg_file(tmp_path: Path) -> None:
     with open(corrupted_cfg, 'w') as f:
         f.write('corrupted_data')
 
-    config = ConfigParser()
+    config = IniConfig()
     with pytest.raises(ConfigError) as err:
         config.parse_file(str(corrupted_cfg))
 
