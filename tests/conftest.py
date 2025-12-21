@@ -9,8 +9,8 @@ from ini_config import IniConfig
 class TestCfg:
     '''Эмуляция загрузки конфигурации из файла'''
 
-    true_cases = ('true', 'yes', '1', 'on')
-    false_cases = ('false', 'no', '0', 'off')
+    true_cases = ('true', 'yes', '1', 'on', 'enable')
+    false_cases = ('false', 'no', '0', 'off', 'disable')
 
     def __init__(self) -> None:
 
@@ -18,6 +18,8 @@ class TestCfg:
         self._config: dict[str, dict[str, Any]] = {}
         self._param_types: dict[str, dict[str, Callable[[str], Any]]] = {}
         self._default: dict[str, dict[str, Any]] = {}
+        self._sect_attr_name : dict[str, str | None] = {}
+        self._param_attr_name: dict[str, dict[str, str | None]] = {}
 
     def create_rnd_cfg(self) -> None:
         '''Создание случайной корректной конфигурации'''
@@ -31,6 +33,7 @@ class TestCfg:
                     self._param_types[section_name] = {}
                     self._config[section_name] = {}
                     self._default[section_name] = {}
+                    self._param_attr_name[section_name] = {}
                 
                 param_type = random.choice(self._types)
                 if param_type is int:
@@ -44,12 +47,16 @@ class TestCfg:
                 self._param_types[section_name][param_name] = param_type
                 self._config[section_name][param_name] = value
                 self._default[section_name][param_name] = None
+                self._sect_attr_name[section_name] = None
+                self._param_attr_name[section_name][param_name] = None
 
-    def add_section(self, name: str) -> None:
+    def add_section(self, name: str, attr_name: str | None = None) -> None:
         '''Добавление секции конфигурации'''
         self._config[name] = {}
         self._param_types[name] = {}
         self._default[name] = {}
+        self._sect_attr_name[name] = attr_name
+        self._param_attr_name[name] = {}
 
     def add_param(
             self,
@@ -57,12 +64,17 @@ class TestCfg:
             section: str,
             val: Any,
             type: Callable[[str], Any],
-            default : Any = None
+            default : Any = None,
+            attr_name: str | None = None
     ) -> None:
         '''Добавление параметра'''
         self._config[section][name] = val
         self._param_types[section][name] = type
-        self._default[section][name] = default if default else None
+        if default is not None:
+            self._default[section][name] = default
+        else:
+            self._default[section][name] = None
+        self._param_attr_name[section][name] = attr_name
 
     def make_file(self, tmp_path: Path) -> str:
         '''Создание тестового файла конфигурации'''
@@ -82,10 +94,13 @@ class TestCfg:
         cfg_parser = IniConfig()
 
         for section in self._config:
-            cfg_section = cfg_parser.add_section(section)
+            cfg_section = cfg_parser.add_section(
+                section, self._sect_attr_name[section]
+            )
             for param in self._config[section]:
                 cfg_section.add_param(
                     param_name = param,
+                    attr_name = self._param_attr_name[section][param],
                     param_type = self._param_types[section][param],
                     default = self._default[section][param]
                 )
@@ -107,3 +122,16 @@ class TestCfg:
 def dummy_cfg() -> TestCfg:            
     return TestCfg()
 
+@pytest.fixture
+def positive_int() -> Callable[[Any], Any]:
+    def _positive_int(param: Any) -> int:
+        try:
+            param = int(param)
+        except:
+            raise
+
+        if param > 0: return param
+        else:
+            raise ValueError
+
+    return _positive_int

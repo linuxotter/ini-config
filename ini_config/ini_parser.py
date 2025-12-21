@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import configparser
 import logging
+import keyword
 
 class ConfigError(Exception):
     '''
@@ -22,7 +23,8 @@ class Parameter:
     '''
 
     param_name: str
-    param_type: Callable[[str], Any] = str
+    attr_name: str
+    param_type: Callable[[Any], Any] = str
     default: Any = None
 
 class ConfigNamespace:
@@ -54,7 +56,7 @@ class ConfigSection:
     '''
 
     @staticmethod
-    def _str_to_bool(param: str) -> bool:
+    def _str_to_bool(param: Any) -> bool:
         '''
         Конвертация строки в булево значение
         
@@ -62,26 +64,87 @@ class ConfigSection:
         преобразования строки в булево значение
         '''
 
-        true_cases = ('true', 'yes', '1', 'on')
-        false_cases = ('false', 'no', '0', 'off')
+        true_cases = ('true', 'yes', '1', 'on', 'enable')
+        false_cases = ('false', 'no', '0', 'off', 'disable')
 
-        if param.lower() in true_cases: return True
-        elif param.lower() in false_cases: return False
-        else: raise ValueError 
+        if isinstance(param, bool): return param
+        elif str(param).lower() in true_cases: return True
+        elif str(param).lower() in false_cases: return False
+        else: raise ValueError     
 
-    def __init__(self, section_name: str) -> None:
-        self._section_name: str = section_name
+    @staticmethod
+    def _chk_attr_name(attr_name: str) -> str:
+        '''
+        Проверка имени атрибута
+        
+        Проверяет соответствие строки правилам именования атрибутов в python.
+        '''
+
+        if  not isinstance(attr_name, str):
+            raise ValueError(f'{attr_name} не является строкой')
+        elif not (attr_name):
+            raise ValueError('пустая строка')
+        elif not attr_name.isidentifier():
+            raise ValueError(f'{attr_name} не является корректным идентификатором')
+        elif keyword.iskeyword(attr_name):
+            raise ValueError(f'{attr_name} является ключевым словом python')
+        elif attr_name.startswith('__') and attr_name.endswith('__'):
+            raise ValueError(
+                f'{attr_name} является магическим методом Python'
+            )
+        elif attr_name in dir(object):
+            raise ValueError(
+                f'{attr_name} является встроенным атрибутом Python'
+            )
+        else:
+            return attr_name.lower()
+
+
+    def __init__(self, section_name: str, attr_name: str | None) -> None:
+
+        self._section_name = section_name
+
+        try: 
+            if attr_name is not None:
+                self._attr_name = self._chk_attr_name(attr_name)
+            else:
+                self._attr_name = self._chk_attr_name(section_name)
+        except ValueError as err:
+            raise ConfigError(
+                f'Ошибка именования свойства секции {self._section_name} : '
+                f'{err}'
+            )
+
         self._params: dict[str, Parameter] = {}
 
     def add_param(
         self,
         param_name: str,
-        param_type: Callable[[str], Any] = str,
+        attr_name: str | None = None,
+        param_type: Callable[[Any], Any] = str,
         default: Any = None
     ) -> Self:
         '''Добавляет параметр в секцию'''
 
+        if not isinstance(param_name, str):
+            raise ConfigError(
+                f'Название параметра {self._section_name}.{param_name} '
+                'не является строкой'
+            )
+
         param_name = param_name.lower()
+
+        try:
+            if attr_name is None:
+                attr_name = self._chk_attr_name(param_name)
+            else:
+                attr_name = self._chk_attr_name(attr_name)
+        except ValueError as err:
+            raise ConfigError(
+                'Ошибка именования свойства параметра '
+                f'{self._section_name}.{param_name} : {err}'
+            )
+
         if self._params.get(param_name):
             raise ConfigError(
                 f'Дублированный параметр {self._section_name}.{param_name}'
@@ -92,7 +155,7 @@ class ConfigSection:
             param_type = self._str_to_bool
 
         # Проверка типа значения по умолчанию
-        if default:
+        if default is not None:
             try:
                 default = param_type(default)
             except:
@@ -102,8 +165,15 @@ class ConfigSection:
                     f'{param_type.__name__}'
                 )
 
+        if not callable(param_type):
+            raise ConfigError(
+                f'Тип параметра {self._section_name}.{param_name} '
+                f'{param_type} не является функцией'
+            )
+
         self._params[param_name] = Parameter(
             param_name = param_name,
+            attr_name = attr_name,
             param_type = param_type,
             default = default
         )
@@ -141,11 +211,15 @@ class IniConfig:
 
     def __init__(self) -> None:
         self._sections: dict[str, ConfigSection] = {}   # Словарь, содержащий объекты секций
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger(__file__.removesuffix('.py'))
         self._logger.setLevel(logging.DEBUG)
         self._logger.addHandler(logging.NullHandler())
 
-    def add_section(self, section_name: str) -> ConfigSection:
+    def add_section(
+        self,
+        section_name: str,
+        attr_name: str | None = None
+    ) -> ConfigSection:
         '''
         Добавляет секцию конфигурации
         
@@ -153,15 +227,22 @@ class IniConfig:
         файле
         '''
 
+        if not isinstance(section_name, str):
+            raise ConfigError(
+                f'Название секции {section_name} не является строкой'
+            )
         section_name = section_name.lower()
-        self._logger.debug(
-            f'Секция конфигурации {section_name} добавлена в обработчик'
-        )
+
         if section_name in self._sections:
             raise ConfigError(f'Секция {section_name} уже существует')
 
-        section = ConfigSection(section_name)
+
+        section = ConfigSection(section_name, attr_name)
         self._sections[section_name] = section
+
+        self._logger.debug(
+            f'Секция конфигурации {section_name} добавлена в обработчик'
+        )
 
         return section
 
@@ -175,8 +256,7 @@ class IniConfig:
         '''
 
         # Преобразование пути в объект Path, если в аргументах передана строка
-        if type(cfg_file) is not Path:
-            cfg_file = Path(cfg_file)
+        cfg_file = Path(cfg_file)
 
         self._logger.info(f'Чтение файла конфигурации {cfg_file}')
         try:
@@ -250,22 +330,20 @@ class IniConfig:
                         del config[section_name][param.param_name]
 
                 if is_missing:
-                    self._logger.debug(
+                    log_msg = (
                         f'Параметр {section_name}.{param.param_name} '
-                        'отсутствует или задан неверно, попытка '
-                        'использовать значение по умолчанию'
+                        'отсутствует или задан неверно'
                     )
                     if param.default is not None:
                         val = param.default
                         is_missing = False
-                        self._logger.info(
-                            'Используется значение по умолчанию '
-                            f'{section_name}.{param.param_name} = {val}'
+                        self._logger.warning(
+                            f'{log_msg}, используется значение '
+                            f'по умолчанию : {val}'
                         )
                     else:
-                        self._logger.warning(
-                            f'Отсутствует значение по умолчанию для '
-                            f'параметра {section_name}.{param.param_name}'
+                        self._logger.error(
+                            f'{log_msg}, значение по умолчанию не задано'
                         )
                         raise ConfigError(
                             'Отсутствует параметр '
@@ -273,7 +351,7 @@ class IniConfig:
                         )
 
                 # Добавление параметра в объект секции
-                setattr(section_namespace, param.param_name, val)
+                setattr(section_namespace, param.attr_name, val)
 
             # Добавление объекта секции в объект конфигурации
             # Если секция MAIN, то параметры добавляются как ключи
@@ -283,7 +361,7 @@ class IniConfig:
                     setattr(namespace, k, v)
             # Для других секций создается структура объект.секция.параметр
             else:
-                setattr(namespace, section_name, section_namespace)
+                setattr(namespace, section_obj._attr_name, section_namespace)
 
             # Если в секции не осталось необработанных параметров,
             # удаляем ее из объекта configparser

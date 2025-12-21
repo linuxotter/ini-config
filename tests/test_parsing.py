@@ -221,3 +221,215 @@ def test_unknown_params(
    assert 'Неизвестная пустая секция в файле конфигурации: empty' in caplog.text
    assert 'Неизвестный параметр main.unknown_param1' in caplog.text
    assert 'DEFAULT' not in caplog.text
+
+test_cases = [
+   ('str with space', None, 'не является корректным идентификатором'),
+   ('', None, 'пустая строка'),
+   ('@wrong_name', None, 'не является корректным идентификатором'),
+   ('1wrong_name', None, 'не является корректным идентификатором'),
+   ('class', None, 'является ключевым словом python'),
+   (123, None, 'Название секции 123 не является строкой'),
+   ('str with space', 'str_with_space', None),
+   ('@wrong_name', 'correct_name', None),
+   (123, 'correct_name', 'Название секции 123 не является строкой'),
+   ('123', 123, 'Ошибка именования свойства секции 123 : 123 не является строкой'),
+]
+@pytest.mark.parametrize('section_name, attr_name, err_msg', test_cases)
+def test_section_names(
+   dummy_cfg: TestCfg,
+   tmp_path: Path,
+   section_name: Any,
+   attr_name: Any | None,
+   err_msg: str | None,
+) -> None:
+   '''Тест названий секций с пробелами'''
+
+   dummy_cfg.add_section(section_name, attr_name)
+   if err_msg:
+      with pytest.raises(ConfigError) as err:
+         dummy_cfg.make_parser()
+
+      assert err_msg in str(err.value)
+
+   else:
+      cfg_file = dummy_cfg.make_file(tmp_path)
+      cfg_parser = dummy_cfg.make_parser()
+      cfg = cfg_parser.parse_file(cfg_file)
+
+      assert(attr_name) is not None
+      assert hasattr(cfg, attr_name)
+
+test_cases = [
+   ('str with space', None, 'не является корректным идентификатором'),
+   ('', None, 'пустая строка'),
+   ('@wrong_name', None, 'не является корректным идентификатором'),
+   ('1wrong_name', None, 'не является корректным идентификатором'),
+   ('class', None, 'является ключевым словом python'),
+   (123, None, 'Название параметра main.123 не является строкой'),
+   ('str with space', 'str_with_space', None),
+   ('@wrong_name', 'correct_name', None),
+   (123, 'correct_name', 'Название параметра main.123 не является строкой'),
+   ('123', 123, 'Ошибка именования свойства параметра main.123 : 123 не является строкой'),
+]
+
+@pytest.mark.parametrize('param_name, attr_name, err_msg', test_cases)
+def test_param_names(
+   dummy_cfg: TestCfg,
+   tmp_path: Path,
+   param_name: Any,
+   attr_name: Any | None,
+   err_msg: str | None,
+) -> None:
+
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param(param_name, 'main', 'value', str, attr_name = attr_name)
+
+   if err_msg:
+      with pytest.raises(ConfigError) as err:
+         dummy_cfg.make_parser()
+
+      assert err_msg in str(err.value)
+
+   else:
+      cfg_file = dummy_cfg.make_file(tmp_path)
+      cfg_parser = dummy_cfg.make_parser()
+      cfg = cfg_parser.parse_file(cfg_file)
+
+      assert attr_name is not None
+      assert getattr(cfg, attr_name) == 'value'
+
+test_cases = [
+    ('yes', None, True),
+    ('yes', 'TRUE', True),
+    ('', True, True),
+    ('disable', 'on', False),
+    (1, False, True),
+    ('off', 'on', False),
+    ('', 0, False)
+]
+@pytest.mark.parametrize('val, default, expected_val', test_cases)
+def test_bool(
+   dummy_cfg: TestCfg,
+   tmp_path: Path,
+   val: str,
+   default: Any,
+   expected_val: bool
+) -> None:
+
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param('bool', 'main', val, bool, default)
+   cfg_parser = dummy_cfg.make_parser()
+   cfg_file = dummy_cfg.make_file(tmp_path)
+   cfg = cfg_parser.parse_file(cfg_file)
+
+   assert getattr(cfg, 'bool') == expected_val
+
+test_cases = [
+   (0, int),
+   (0.0, float),
+   ('', str),
+   (False, bool)
+]
+@pytest.mark.parametrize('default_val, param_type', test_cases)
+def test_default_values(
+   dummy_cfg: TestCfg,
+   tmp_path: Path,
+   default_val: Any,
+   param_type: Callable[[Any], Any]
+) -> None:
+
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param('param1', 'main', '', param_type, default_val)
+   cfg_file = dummy_cfg.make_file(tmp_path)
+   cfg_parser = dummy_cfg.make_parser()
+   cfg = cfg_parser.parse_file(cfg_file)
+
+   assert getattr(cfg, 'param1') == default_val
+
+test_cases = [
+   (0, 1, 1, None),
+   (5, None, 5, None),
+   (-23, 7, 7, None),
+   ('', 2, 2, None),
+   ('', None, None, 'Отсутствует параметр main.param1'),
+   ('0', None, None, 'Отсутствует параметр main.param1'),
+   ('-23', None, None, 'Отсутствует параметр main.param1'),
+   ('no', None, None, 'Отсутствует параметр main.param1'),
+   (1, 0, None, 'Ошибка приведения значения по умолчанию для параметра main.param1')
+]
+@pytest.mark.parametrize('val, default_val, expected_val, err_msg', test_cases)
+def test_user_conversion(
+      dummy_cfg: TestCfg,
+      tmp_path: Path,
+      positive_int: Callable[[Any], Any],
+      val: Any,
+      default_val: Any,
+      expected_val: Any,
+      err_msg: str | None
+) -> None:
+   
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param('param1', 'main', val, positive_int, default_val)
+   cfg_file = dummy_cfg.make_file(tmp_path)
+   
+   if err_msg is None:
+      cfg_parser = dummy_cfg.make_parser()
+      cfg = cfg_parser.parse_file(cfg_file)
+      assert getattr(cfg, 'param1') == expected_val
+
+   else:
+      with pytest.raises(ConfigError) as err:
+         cfg_parser = dummy_cfg.make_parser()
+         cfg = cfg_parser.parse_file(cfg_file)
+
+      assert err_msg in str(err.value)
+
+test_cases = [
+   ('__dict__', 'является магическим методом Python'),
+   ('__class__', 'является магическим методом Python'),
+   ('items', 'является встроенным атрибутом Python'),
+   ('__str__', 'является магическим методом Python'),
+]
+@pytest.mark.parametrize('attr_name, err_msg', test_cases)
+def test_attr_name_overrides_attributes(
+   dummy_cfg: TestCfg,
+   attr_name: str,
+   err_msg: str
+) -> None:
+
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param('param1', 'main', 'value', str, attr_name='__dict__')
+
+   with pytest.raises(ConfigError) as err:
+      dummy_cfg.make_parser()
+
+   assert 'является магическим методом Python' in str(err.value)
+
+def test_param_type(
+   dummy_cfg: TestCfg,
+   tmp_path: Path
+) -> None:
+
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param('param_1', 'main', 123, None, None)
+   
+   with pytest.raises(ConfigError) as err:
+      dummy_cfg.make_parser()
+
+   assert str(err.value) == 'Тип параметра main.param_1 None не является функцией'
+
+def test_repeating_attr_names(
+   dummy_cfg: TestCfg,
+   tmp_path: Path
+) -> None:
+
+   dummy_cfg.add_section('main', 'duplicate')
+   dummy_cfg.add_section('log', 'duplicate')
+   cfg_file = dummy_cfg.make_file(tmp_path)
+   cfg_parser = dummy_cfg.make_parser()
+   cfg = cfg_parser.parse_file(cfg_file)
+
+   assert hasattr(cfg, 'duplicate')
+
+
+   
