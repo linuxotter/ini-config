@@ -1,0 +1,11 @@
+Package: ini-config
+Version: 0.1.0
+Architecture: all
+Maintainer: Alexander Safonov <aesafonov@tvc.ru>
+Installed-Size: 84
+Depends: python3
+Section: python
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://github.com/linuxotter/ini-config
+Description: Модуль обработки файлов конфигурации .INI

@@ -5,3 +5,7 @@ __pycache__
 .pytest_cache
 test_123.py
 test_cfg.ini
+*.egg-info
+dist
+.pybuild
+TODO.md

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Self
+from typing import Any, Callable
 from dataclasses import dataclass
 from pathlib import Path
 import configparser
@@ -47,6 +47,11 @@ class ConfigNamespace:
     def __bool__(self) -> bool:
         '''Если у объекта есть ключи, возвращает True, иначе False'''
         return bool(self.__dict__)
+
+    def __getattr__(self, name: str) -> Any:
+        raise AttributeError(
+            f"'{type(self).__name__}' у объекта нет атрибута '{name}'"
+        )
 
 class ConfigSection:
     '''
@@ -123,7 +128,7 @@ class ConfigSection:
         attr_name: str | None = None,
         param_type: Callable[[Any], Any] = str,
         default: Any = None
-    ) -> Self:
+    ):
         '''Добавляет параметр в секцию'''
 
         if not isinstance(param_name, str):

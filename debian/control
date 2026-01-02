@@ -1,0 +1,23 @@
+Source: ini-config
+Section: python
+Priority: optional
+Maintainer: Alexander Safonov <aesafonov@tvc.ru>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ python3-all,
+ python3-setuptools,
+ python3-wheel
+Standards-Version: 4.6.2
+Homepage: https://github.com/linuxotter/ini-config
+
+Package: python3-ini-config
+Architecture: all
+Multi-Arch: foreign
+Depends:
+ python3,
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: Модуль обработки файлов конфигурации .INI
+ Позволяет задавать параметры для сценариев при помощи файлов конфигурации
