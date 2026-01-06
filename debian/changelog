@@ -1,5 +1,9 @@
-ini-config (0.1.0) UNRELEASED; urgency=medium
+ini-config (0.1.1) UNRELEASED; urgency=medium
 
+  [ Alexander Safonov ]
   * Initial release.
 
- -- Alexander Safonov <aesafonov@tvc.ru>  Fri, 02 Jan 2026 18:51:22 +0300
+  [ Alexander Safonov ]
+  * Fixed bug with log filtering when using with **logging**
+
+ -- Alexander Safonov <aesafonov@tvc.ru>  Tue, 06 Jan 2026 22:21:10 +0300

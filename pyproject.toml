@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ini-config"
-version = "0.1.0"
+version = "0.1.1"
 description = "A typed INI configuration parser with validation and namespace access"
 readme = "README.md"
 authors = [
