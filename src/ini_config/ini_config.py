@@ -26,6 +26,7 @@ class Parameter:
     attr_name: str
     param_type: Callable[[Any], Any] = str
     default: Any = None
+    converted_default: Any = None
 
 class ConfigNamespace:
     '''
@@ -159,28 +160,32 @@ class ConfigSection:
         if param_type is bool:
             param_type = self._str_to_bool
 
-        # Проверка типа значения по умолчанию
-        if default is not None:
-            try:
-                default = param_type(default)
-            except:
-                raise ConfigError(
-                    f'Ошибка приведения значения по умолчанию для параметра '
-                    f'{self._section_name}.{param_name} к типу '
-                    f'{param_type.__name__}'
-                )
-
+        # Check if param_type is callable
         if not callable(param_type):
             raise ConfigError(
                 f'Тип параметра {self._section_name}.{param_name} '
                 f'{param_type} не является функцией'
             )
 
+        # Проверка типа значения по умолчанию
+        if default is not None:
+            try:
+                converted_default = param_type(default)
+            except:
+                raise ConfigError(
+                    f'Ошибка приведения значения по умолчанию для параметра '
+                    f'{self._section_name}.{param_name} к типу '
+                    f'{param_type.__name__}'
+                )
+        else:
+            converted_default = None
+
         self._params[param_name] = Parameter(
             param_name = param_name,
             attr_name = attr_name,
             param_type = param_type,
-            default = default
+            default = default,
+            converted_default = converted_default
         )
 
         return self
@@ -338,12 +343,12 @@ class IniConfig:
                         f'Параметр {section_name}.{param.param_name} '
                         'отсутствует или задан неверно'
                     )
-                    if param.default is not None:
-                        val = param.default
+                    if param.converted_default is not None:
+                        val = param.converted_default
                         is_missing = False
                         self._logger.warning(
                             f'{log_msg}, используется значение '
-                            f'по умолчанию : {val}'
+                            f'по умолчанию : {param.default}'
                         )
                     else:
                         self._logger.error(
