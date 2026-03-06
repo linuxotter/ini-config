@@ -6,3 +6,6 @@
 override_dh_auto_clean:
 	dh_clean
 	find . -name "__pycache__" -exec rm -rf {} +
+	find . -name ".pybuild" -exec rm -rf {} +
+	find . -name "build" -exec rm -rf {} +
+	find ./debian -name "ini_config" -type d -exec rm -rf {} +

@@ -216,7 +216,7 @@ class IniConfig:
 
     def __init__(self) -> None:
         self._sections: dict[str, ConfigSection] = {}   # Словарь, содержащий объекты секций
-        self._logger = logging.getLogger(__file__.removesuffix('.py'))
+        self._logger = logging.getLogger(__name__)
         self._logger.addHandler(logging.NullHandler())
 
     def add_section(
