@@ -3,9 +3,10 @@ __pycache__
 .vscode
 .venv
 .pytest_cache
-test_123.py
 test_cfg.ini
 *.egg-info
 dist
 .pybuild
 TODO.md
+build
+debian/ini_config
