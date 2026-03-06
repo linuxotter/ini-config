@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
 from typing import Callable, Any
+import logging
 
 from conftest import TestCfg
 from ini_config import IniConfig, ConfigError
@@ -405,13 +406,15 @@ def test_attr_name_overrides_attributes(
 
    assert 'является магическим методом Python' in str(err.value)
 
-def test_param_type(
-   dummy_cfg: TestCfg,
-   tmp_path: Path
-) -> None:
+def test_param_type(dummy_cfg: TestCfg) -> None:
 
    dummy_cfg.add_section('main')
-   dummy_cfg.add_param('param_1', 'main', 123, None, None)
+   dummy_cfg.add_param(
+      name = 'param_1',
+      section = 'main',
+      val = 123,
+      type = None # pyright: ignore[reportArgumentType]
+   )
    
    with pytest.raises(ConfigError) as err:
       dummy_cfg.make_parser()
@@ -431,5 +434,26 @@ def test_repeating_attr_names(
 
    assert hasattr(cfg, 'duplicate')
 
+def test_default_value_in_logs(
+      dummy_cfg: TestCfg,
+      tmp_path,
+      caplog
+) -> None:
 
-   
+   def _test_type(val: Any) -> bool:
+      if not val:
+         raise ValueError
+
+      return True
+
+   test_logger = logging.getLogger()
+   test_logger.setLevel(logging.DEBUG)
+
+   dummy_cfg.add_section('main')
+   dummy_cfg.add_param('test_param', 'main', '', _test_type, default = 'test_val') 
+   cfg_file = dummy_cfg.make_file(tmp_path)
+   cfg_parser = dummy_cfg.make_parser()
+   cfg = cfg_parser.parse_file(cfg_file)
+
+   assert hasattr(cfg, 'test_param') and getattr(cfg, 'test_param') == True
+   assert ('используется значение по умолчанию : test_val' in caplog.text)
