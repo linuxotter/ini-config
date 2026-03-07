@@ -1,0 +1,70 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      # 1. Кэширование зависимостей (pip)
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+
+      # 2. Установка зависимостей
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      # 3. Lint с помощью Ruff (Проверка кода)
+      - name: Lint with Ruff
+        run: |
+          # --exit-zero: показывает ошибки, но не ломает сборку (для отчета)
+          # --output-format=github: выводит ошибки в формате GitHub Annotations (подсветка в PR)
+          ruff check . --output-format=github
+
+      # 4. Format с помощью Ruff (Проверка форматирования)
+      - name: Check formatting with Ruff
+        run: |
+          ruff format . --check
+
+      # 5. Тесты с покрытием
+      - name: Run tests with pytest
+        run: |
+          pytest --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
