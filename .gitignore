@@ -10,3 +10,4 @@ dist
 TODO.md
 build
 debian/ini_config
+.ruff_cache
