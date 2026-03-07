@@ -476,3 +476,39 @@ def test_default_value_in_logs(dummy_cfg: TestCfg, tmp_path, caplog) -> None:
 
     assert hasattr(cfg, "test_param") and getattr(cfg, "test_param")
     assert "используется значение по умолчанию : test_val" in caplog.text
+
+
+def test_empty_cfg_file(dummy_cfg: TestCfg, tmp_path: Path) -> None:
+
+    cfg_file = tmp_path / "cfg_file"
+    with open(cfg_file, "w"):
+        pass
+
+    dummy_cfg.add_section("main")
+    dummy_cfg.add_param("test_param", "main", "test", str, default="test")
+    cfg_parser = dummy_cfg.make_parser()
+    cfg = cfg_parser.parse_file(cfg_file)
+    assert hasattr(cfg, "test_param") and getattr(cfg, "test_param") == "test"
+
+
+def test_parameter_with_default_val_with_no_section_in_cfg(
+    tmp_path: Path, dummy_cfg: TestCfg
+) -> None:
+
+    cfg_file = tmp_path / "cfg_file"
+    with open(cfg_file, "w") as f:
+        f.write("[main]\ntest_param_1 = test\n")
+
+    dummy_cfg.add_section("main")
+    dummy_cfg.add_param("test_param_1", "main", "test", str)
+    dummy_cfg.add_section("ghost_section")
+    dummy_cfg.add_param(
+        "test_param_2", "ghost_section", "test_val", str, default="test_val"
+    )
+    cfg_parser = dummy_cfg.make_parser()
+    cfg = cfg_parser.parse_file(cfg_file)
+
+    assert getattr(cfg, "test_param_1") == "test"
+    assert (section := getattr(cfg, "ghost_section")) and getattr(
+        section, "test_param_2"
+    ) == "test_val"
