@@ -357,7 +357,7 @@ class IniConfig:
 
             # Если в секции не осталось необработанных параметров,
             # удаляем ее из объекта configparser
-            if not config[section_name]:
+            if config.has_section(section_name) and not config[section_name]:
                 del config[section_name]
 
         # Проверяем, остались ли после разбора конфигурации
