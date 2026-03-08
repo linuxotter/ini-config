@@ -4,7 +4,7 @@ from typing import Callable, Any
 import logging
 
 from conftest import TestCfg
-from ini_config import ConfigError
+from ini_config import ConfigError, IniConfig
 
 
 def test_normal_operation(dummy_cfg: TestCfg, tmp_path: Path) -> None:
@@ -512,3 +512,46 @@ def test_parameter_with_default_val_with_no_section_in_cfg(
     assert (section := getattr(cfg, "ghost_section")) and getattr(
         section, "test_param_2"
     ) == "test_val"
+
+
+def test_no_cfg_files_with_all_defult_params(caplog) -> None:
+
+    cfg_parser = IniConfig()
+    cfg_parser.add_section("main").add_param(
+        "default_param_1", param_type=int, default=1
+    ).add_param("default_param_2", param_type=int, default=2)
+    cfg_parser.add_section("test").add_param(
+        "default_param_3", param_type=int, default=3
+    ).add_param("default_param_4", param_type=int, default=4)
+
+    cfg = cfg_parser.parse_file("not_exists")
+
+    assert "Ошибка чтения файла not_exists:" in caplog.text
+    assert getattr(cfg, "default_param_1") == 1
+    assert getattr(cfg, "default_param_2") == 2
+
+    assert (test_section := getattr(cfg, "test"))
+    assert getattr(test_section, "default_param_3") == 3
+    assert getattr(test_section, "default_param_4") == 4
+
+
+def test_no_section_for_default_params(
+    dummy_cfg: TestCfg, tmp_path: Path, caplog
+) -> None:
+
+    test_logger = logging.getLogger()
+    test_logger.setLevel(logging.DEBUG)
+
+    dummy_cfg.add_section("main")
+    dummy_cfg.add_param("required_param", "main", "required_val", str)
+    cfg_file = dummy_cfg.make_file(tmp_path)
+    cfg_parser = dummy_cfg.make_parser()
+
+    cfg_parser.add_section("test").add_param("default_param", default="default_val")
+
+    cfg = cfg_parser.parse_file(cfg_file)
+
+    assert getattr(cfg, "required_param") == "required_val"
+    assert (test_section := getattr(cfg, "test"))
+    assert getattr(test_section, "default_param") == "default_val"
+    assert f"Секция test не найдена в файле {cfg_file}" in caplog.text

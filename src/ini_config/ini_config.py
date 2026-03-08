@@ -266,10 +266,13 @@ class IniConfig:
         try:
             with open(cfg_file, "r") as f:
                 ini_content = f.read()
-        except FileNotFoundError:
-            raise ConfigError(f"Файл не найден: {cfg_file}")
         except Exception as err:
-            raise ConfigError(f"Ошибка чтения файла {cfg_file}: {err}")
+            cfg_file_read_err = True
+            self._logger.warning(f"Ошибка чтения файла {cfg_file}: {err}")
+            ini_content = ""
+        #            raise ConfigError(f"Ошибка чтения файла {cfg_file}: {err}")
+        else:
+            cfg_file_read_err = False
 
         config = configparser.ConfigParser()
         try:
@@ -277,7 +280,8 @@ class IniConfig:
         except Exception as err:
             raise ConfigError(f"Ошибка разбора файла конфигурации {cfg_file}: {err}")
 
-        self._logger.info("Файл конфигурации успешно прочитан")
+        if not cfg_file_read_err:
+            self._logger.info("Файл конфигурации успешно прочитан")
 
         # Создание пустого объекта конфигурации
         namespace = ConfigNamespace()
