@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ini-config"
-version = "0.1.1"
+version = "0.2.0"
 description = "A typed INI configuration parser with validation and namespace access"
 readme = "README.md"
 authors = [
-    {name = "Alexander Safonov", email = "aesafonov@tvc.ru"},
+    {name = "Alexandr Safonov", email = "aesafonov@tvc.ru"},
 ]
 license = {file = "LICENSE"}
 classifiers = [
@@ -26,8 +26,8 @@ requires-python = ">=3.8"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ini-parser"
-Repository = "https://github.com/yourusername/ini-parser"
+Homepage = "https://github.com/yourusername/ini-config"
+Repository = "https://github.com/yourusername/ini-config"
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -35,3 +35,9 @@ Repository = "https://github.com/yourusername/ini-parser"
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["ini_config*"]
+
+[tool.commitizen]
+version = "0.2.0"
+version_files = [
+    "pyproject.toml:version"
+]
