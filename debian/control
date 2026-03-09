@@ -23,3 +23,4 @@ Description: Python module for parsing INI configuration files
  This module is designed to parse configuration files, extract
  parameters, and pass them to the calling Python script. It allows
  changing application parameters without editing the source code.
+ 
