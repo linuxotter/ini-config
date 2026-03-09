@@ -1,4 +1,4 @@
-ini-config (0.1.1) UNRELEASED; urgency=medium
+ini-config (0.2.0-1) UNRELEASED; urgency=medium
 
   [ Alexander Safonov ]
   * Initial release.
@@ -6,4 +6,9 @@ ini-config (0.1.1) UNRELEASED; urgency=medium
   [ Alexander Safonov ]
   * Fixed bug with log filtering when using with **logging**
 
- -- Alexander Safonov <aesafonov@tvc.ru>  Tue, 06 Jan 2026 22:21:10 +0300
+  [ Alexander Safonov ]
+  * fixed KeyError while reading empty cfg file
+  * cfg file is not required with default params anymore
+
+
+ -- Alexandr Safonov <aesafonov@tvc.ru>  Mon, 09 Mar 2026 11:52:43 +0300

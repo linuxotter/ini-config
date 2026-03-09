@@ -1,7 +1,7 @@
 Source: ini-config
 Section: python
 Priority: optional
-Maintainer: Alexander Safonov <aesafonov@tvc.ru>
+Maintainer: Alexandr Safonov <aesafonov@tvc.ru>
 Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
@@ -19,5 +19,7 @@ Depends:
  python3,
  ${shlibs:Depends},
  ${misc:Depends},
-Description: Модуль обработки файлов конфигурации .INI
- Позволяет задавать параметры для сценариев при помощи файлов конфигурации
+Description: Python module for parsing INI configuration files
+ This module is designed to parse configuration files, extract
+ parameters, and pass them to the calling Python script. It allows
+ changing application parameters without editing the source code.
