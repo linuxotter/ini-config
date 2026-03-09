@@ -270,7 +270,6 @@ class IniConfig:
             cfg_file_read_err = True
             self._logger.warning(f"Ошибка чтения файла {cfg_file}: {err}")
             ini_content = ""
-        #            raise ConfigError(f"Ошибка чтения файла {cfg_file}: {err}")
         else:
             cfg_file_read_err = False
 
