@@ -19,5 +19,8 @@ Depends:
  python3,
  ${shlibs:Depends},
  ${misc:Depends},
-Description: Модуль обработки файлов конфигурации .INI
- Позволяет задавать параметры для сценариев при помощи файлов конфигурации
+Description: Parser for INI configuration files
+ This module extends the functionality of the built-in Python `configparser`
+ module. It allows defining expected configuration structures, setting
+ default values for optional parameters, and provides access to parsed data
+ via a Namespace object.
