@@ -4,6 +4,14 @@ from pathlib import Path
 import configparser
 import logging
 import keyword
+import gettext
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
+# Language settings
+t = gettext.NullTranslations()
+_ = t.gettext
 
 
 class ConfigError(Exception):
@@ -93,17 +101,23 @@ class ConfigSection:
         """
 
         if not isinstance(attr_name, str):
-            raise ValueError(f"{attr_name} не является строкой")
+            raise ValueError(
+                _("{attr_name} is not a string").format(attr_name=attr_name)
+            )
         elif not (attr_name):
-            raise ValueError("пустая строка")
+            raise ValueError(_("empty string"))
         elif not attr_name.isidentifier():
-            raise ValueError(f"{attr_name} не является корректным идентификатором")
+            raise ValueError(
+                _("{attr_name} is not a valid identifier").format(attr_name)
+            )
         elif keyword.iskeyword(attr_name):
-            raise ValueError(f"{attr_name} является ключевым словом python")
+            raise ValueError(_("{attr_name} is a Python keyword").format(attr_name))
         elif attr_name.startswith("__") and attr_name.endswith("__"):
-            raise ValueError(f"{attr_name} является магическим методом Python")
+            raise ValueError(_("{attr_name} is a Python magic word").format(attr_name))
         elif attr_name in dir(object):
-            raise ValueError(f"{attr_name} является встроенным атрибутом Python")
+            raise ValueError(
+                _("{attr_name} is a built-in Python attribute").format(attr_name)
+            )
         else:
             return attr_name.lower()
 
@@ -118,7 +132,9 @@ class ConfigSection:
                 self._attr_name = self._chk_attr_name(section_name)
         except ValueError as err:
             raise ConfigError(
-                f"Ошибка именования свойства секции {self._section_name} : {err}"
+                _("Incorrect attribute name for section{section} : {err}").format(
+                    section=self._section_name, err=err
+                )
             )
 
         self._params: dict[str, Parameter] = {}
@@ -134,8 +150,10 @@ class ConfigSection:
 
         if not isinstance(param_name, str):
             raise ConfigError(
-                f"Название параметра {self._section_name}.{param_name} "
-                "не является строкой"
+                _("Parameter name {section}.{param} is not a string").format(
+                    section=self._section_name,
+                    param=param_name,
+                )
             )
 
         param_name = param_name.lower()
@@ -147,13 +165,16 @@ class ConfigSection:
                 attr_name = self._chk_attr_name(attr_name)
         except ValueError as err:
             raise ConfigError(
-                "Ошибка именования свойства параметра "
-                f"{self._section_name}.{param_name} : {err}"
+                _(
+                    "Incorrect attribute name for parameter {section}.{param} : {err}"
+                ).format(section=self._section_name, param=param_name, err=err)
             )
 
         if self._params.get(param_name):
             raise ConfigError(
-                f"Дублированный параметр {self._section_name}.{param_name}"
+                _("Duplicate parameter {section}.{param}").format(
+                    section=self._section_name, param=param_name
+                )
             )
 
         # Тип bool заменяется на метод _str_to_bool
@@ -163,8 +184,9 @@ class ConfigSection:
         # Check if param_type is callable
         if not callable(param_type):
             raise ConfigError(
-                f"Тип параметра {self._section_name}.{param_name} "
-                f"{param_type} не является функцией"
+                _("Parameter {section}.{param} {type} is not callable").format(
+                    section=self._section_name, param=param_name, type=param_type
+                )
             )
 
         # Проверка типа значения по умолчанию
@@ -173,9 +195,14 @@ class ConfigSection:
                 converted_default = param_type(default)
             except Exception:
                 raise ConfigError(
-                    f"Ошибка приведения значения по умолчанию для параметра "
-                    f"{self._section_name}.{param_name} к типу "
-                    f"{param_type.__name__}"
+                    _(
+                        "Error converting default value for parameter "
+                        "{section}.{param} to type {type}"
+                    ).format(
+                        section=self._section_name,
+                        param=param_name,
+                        type=param_type.__name__,
+                    )
                 )
         else:
             converted_default = None
@@ -219,12 +246,39 @@ class IniConfig:
 
         return "\n".join(normalized_ini)
 
+    @staticmethod
+    def set_language(lang: str | None = None) -> None:
+
+        global _
+
+        if lang in ("en", "default", None):
+            t = gettext.NullTranslations()
+            _ = t.gettext
+            logger.debug("English language is set")
+
+        else:
+            if lang == "locale":
+                lang = None
+
+            locales_dir = Path(__file__).parent / "locales"
+            domain = (__name__).split(".")[1]
+
+            try:
+                t = gettext.translation(domain, locales_dir, [lang] if lang else None)
+                _ = t.gettext
+                logger.debug(_("Locale is set, lang=%s"), lang)
+
+            except FileNotFoundError:
+                t = gettext.NullTranslations()
+                _ = t.gettext
+                logger.warning(
+                    _("Files for lang=%s not found in %s directory"), lang, locales_dir
+                )
+
     def __init__(self) -> None:
         self._sections: dict[
             str, ConfigSection
         ] = {}  # Словарь, содержащий объекты секций
-        self._logger = logging.getLogger(__name__)
-        self._logger.addHandler(logging.NullHandler())
 
     def add_section(
         self, section_name: str, attr_name: str | None = None
@@ -237,16 +291,19 @@ class IniConfig:
         """
 
         if not isinstance(section_name, str):
-            raise ConfigError(f"Название секции {section_name} не является строкой")
+            raise ConfigError(
+                _("Section name {section} is not a string").format(section=section_name)
+            )
+
         section_name = section_name.lower()
 
         if section_name in self._sections:
-            raise ConfigError(f"Секция {section_name} уже существует")
+            raise ConfigError(_("Duplicate section {name}").format(name=section_name))
 
         section = ConfigSection(section_name, attr_name)
         self._sections[section_name] = section
 
-        self._logger.debug(f"Секция конфигурации {section_name} добавлена в обработчик")
+        logger.debug(_("Config section %s added to parser"), section_name)
 
         return section
 
@@ -262,13 +319,13 @@ class IniConfig:
         # Преобразование пути в объект Path, если в аргументах передана строка
         cfg_file = Path(cfg_file)
 
-        self._logger.info(f"Чтение файла конфигурации {cfg_file}")
+        logger.info(_("Reading configuration file %s"), cfg_file)
         try:
             with open(cfg_file, "r") as f:
                 ini_content = f.read()
         except Exception as err:
             cfg_file_read_err = True
-            self._logger.warning(f"Ошибка чтения файла {cfg_file}: {err}")
+            logger.warning(_("Error reading file %s : %s"), cfg_file, err)
             ini_content = ""
         else:
             cfg_file_read_err = False
@@ -277,28 +334,32 @@ class IniConfig:
         try:
             config.read_string(self._normalize_ini(ini_content))
         except Exception as err:
-            raise ConfigError(f"Ошибка разбора файла конфигурации {cfg_file}: {err}")
+            raise ConfigError(
+                _("Error parsing configuration file {file} : {err}").format(
+                    file=cfg_file, err=err
+                )
+            )
 
         if not cfg_file_read_err:
-            self._logger.info("Файл конфигурации успешно прочитан")
+            logger.info(_("Configuration file read successfully"))
 
         # Создание пустого объекта конфигурации
         namespace = ConfigNamespace()
 
         for section_name, section_obj in self._sections.items():
-            self._logger.debug(f"Проверяется секция конфигурации {section_name}")
+            logger.debug(_("Checking configuration section %s"), section_name)
             section_namespace = ConfigNamespace()
             section_in_file = section_name in config
             if section_in_file:
-                self._logger.debug(f"Секция {section_name} найдена в файле {cfg_file}")
+                logger.debug(_("Section %s found in file %s"), section_name, cfg_file)
             else:
-                self._logger.debug(
-                    f"Секция {section_name} не найдена в файле {cfg_file}"
+                logger.debug(
+                    _("Section %s not found in file %s"), section_name, cfg_file
                 )
 
             for param in section_obj._params.values():
-                self._logger.debug(
-                    f"Проверяется параметр {section_name}.{param.param_name}"
+                logger.debug(
+                    _("Checking parameter %s.%s"), section_name, param.param_name
                 )
                 val = None
                 is_missing = True
@@ -307,19 +368,23 @@ class IniConfig:
                 # из файла
                 if section_in_file and param.param_name in config[section_name]:
                     raw_val = config[section_name][param.param_name]
-                    self._logger.debug(f"Параметр найден, значение из файла: {raw_val}")
+                    logger.debug(_("Parameter found, value from file: %s"), raw_val)
                     try:
                         val = param.param_type(raw_val)
                         is_missing = False
-                        self._logger.debug(
-                            f"Значение параметра приведено к типу "
-                            f"{param.param_type.__name__}: {val}"
+                        logger.debug(
+                            _("Parameter value converted to type %s : %s"),
+                            param.param_type.__name__,
+                            val,
                         )
                     except Exception as err:
-                        self._logger.error(
-                            "Ошибка преобразования параметра "
-                            f"{section_name}.{param.param_name}={raw_val} "
-                            f"к типу {param.param_type.__name__}. {err}"
+                        logger.error(
+                            _("Error converting parameter %s.%s=%s to type %s. %s"),
+                            section_name,
+                            param.param_name,
+                            raw_val,
+                            param.param_type.__name__,
+                            err,
                         )
                     finally:
                         # Удаление обработанного параметра из объекта configparser
@@ -327,22 +392,25 @@ class IniConfig:
 
                 if is_missing:
                     log_msg = (
-                        f"Параметр {section_name}.{param.param_name} "
-                        "отсутствует или задан неверно"
+                        "Parameter {section}.{param} is missing "
+                        "or it's value is incorrect"
                     )
+
                     if param.converted_default is not None:
                         val = param.converted_default
                         is_missing = False
-                        self._logger.warning(
-                            f"{log_msg}, используется значение "
-                            f"по умолчанию : {param.default}"
+                        logger.warning(
+                            _(log_msg + ", using default value {default}").format(
+                                section=section_name,
+                                param=param.param_name,
+                                default=param.default,
+                            )
                         )
                     else:
-                        self._logger.error(
-                            f"{log_msg}, значение по умолчанию не задано"
-                        )
                         raise ConfigError(
-                            f"Отсутствует параметр {section_name}.{param.param_name}"
+                            _(log_msg + ", default value is not set").format(
+                                section=section_name, param=param.param_name
+                            )
                         )
 
                 # Добавление параметра в объект секции
@@ -375,15 +443,20 @@ class IniConfig:
                     if section == "DEFAULT":
                         continue
                     else:
-                        self._logger.warning(
-                            f"Неизвестная пустая секция в файле конфигурации: "
-                            f"{section}. Игнорируется"
+                        logger.warning(
+                            _(
+                                "Empty section %s is not defined in expected "
+                                "configuration file structure. Ignoring"
+                            ),
+                            section,
                         )
                 else:
                     for param in config[section]:
-                        self._logger.warning(
-                            f"Неизвестный параметр {section}.{param}="
-                            f"{config[section][param]}. Игнорируется"
+                        logger.warning(
+                            _("Unknown parameter %s.%s=%s. Ignoring"),
+                            section,
+                            param,
+                            config[section][param],
                         )
 
         return namespace

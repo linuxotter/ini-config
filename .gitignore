@@ -12,3 +12,4 @@ build
 debian/ini_config
 .ruff_cache
 .coverage
+babel.cfg

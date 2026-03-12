@@ -1,0 +1,180 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-03-12 08:53+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: src/ini_config/ini_config.py:105
+#, python-brace-format
+msgid "{attr_name} is not a string"
+msgstr ""
+
+#: src/ini_config/ini_config.py:108
+msgid "empty string"
+msgstr ""
+
+#: src/ini_config/ini_config.py:111
+#, python-brace-format
+msgid "{attr_name} is not a valid identifier"
+msgstr ""
+
+#: src/ini_config/ini_config.py:114
+#, python-brace-format
+msgid "{attr_name} is a Python keyword"
+msgstr ""
+
+#: src/ini_config/ini_config.py:116
+#, python-brace-format
+msgid "{attr_name} is a Python magic word"
+msgstr ""
+
+#: src/ini_config/ini_config.py:119
+#, python-brace-format
+msgid "{attr_name} is a built-in Python attribute"
+msgstr ""
+
+#: src/ini_config/ini_config.py:135
+#, python-brace-format
+msgid "Incorrect attribute name for section{section} : {err}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:153
+#, python-brace-format
+msgid "Parameter name {section}.{param} is not a string"
+msgstr ""
+
+#: src/ini_config/ini_config.py:169
+#, python-brace-format
+msgid "Incorrect attribute name for parameter {section}.{param} : {err}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:175
+#, python-brace-format
+msgid "Duplicate parameter {section}.{param}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:187
+#, python-brace-format
+msgid "Parameter {section}.{param} {type} is not callable"
+msgstr ""
+
+#: src/ini_config/ini_config.py:199
+#, python-brace-format
+msgid ""
+"Error converting default value for parameter {section}.{param} to type "
+"{type}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:269
+#, python-format
+msgid "Locale is set, lang=%s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:275
+#, python-format
+msgid "Files for lang=%s not found in %s directory"
+msgstr ""
+
+#: src/ini_config/ini_config.py:295
+#, python-brace-format
+msgid "Section name {section} is not a string"
+msgstr ""
+
+#: src/ini_config/ini_config.py:301
+#, python-brace-format
+msgid "Duplicate section {name}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:306
+#, python-format
+msgid "Config section %s added to parser"
+msgstr ""
+
+#: src/ini_config/ini_config.py:322
+#, python-format
+msgid "Reading configuration file %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:328
+#, python-format
+msgid "Error reading file %s : %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:338
+#, python-brace-format
+msgid "Error parsing configuration file {file} : {err}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:344
+msgid "Configuration file read succwessfully"
+msgstr ""
+
+#: src/ini_config/ini_config.py:350
+#, python-format
+msgid "Checking configuration section %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:354
+#, python-format
+msgid "Section %s found in file %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:357
+#, python-format
+msgid "Section %s not found in file %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:362
+#, python-format
+msgid "Checking parameter %s.%s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:371
+#, python-format
+msgid "Parameter found, value from file: %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:376
+#, python-format
+msgid "Parameter value converted to type %s : %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:382
+#, python-format
+msgid "Error converting parameter %s.%s=%s to type %s. %s"
+msgstr ""
+
+#: src/ini_config/ini_config.py:403
+#, python-brace-format
+msgid ", using default value {default}"
+msgstr ""
+
+#: src/ini_config/ini_config.py:411
+msgid ", default value is not set"
+msgstr ""
+
+#: src/ini_config/ini_config.py:448
+#, python-format
+msgid ""
+"Empty section %s is not defined in expected configuration file structure."
+" Ignoring"
+msgstr ""
+
+#: src/ini_config/ini_config.py:456
+#, python-format
+msgid "Unknown parameter %s.%s=%s. Ignoring"
+msgstr ""
+
