@@ -1,0 +1,192 @@
+# Translations template for ini_config.
+# Copyright (C) 2026 Alexandr Safonov
+# This file is distributed under the same license as the ini_config project.
+# Alexandr Safonov <aesafonov@tvc.ru>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ini_config 0.2.0\n"
+"Report-Msgid-Bugs-To: aesafonov@tvc.ru\n"
+"POT-Creation-Date: 2026-03-15 18:56+0300\n"
+"PO-Revision-Date: 2026-03-15 22:00+0300\n"
+"Last-Translator: Alexandr Safonov <aesafonov@tvc.ru>\n"
+"Language-Team: Russian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: src/ini_config/ini_config.py:105
+#, python-brace-format
+msgid "`{attr_name}` is not a string"
+msgstr "`{attr_name}` не является строкой"
+
+#: src/ini_config/ini_config.py:108
+msgid "empty string"
+msgstr "пустая строка"
+
+#: src/ini_config/ini_config.py:111
+#, python-brace-format
+msgid "`{attr_name}` is not a valid Python identifier"
+msgstr "`{attr_name}` не является корректным идентификатором Python"
+
+#: src/ini_config/ini_config.py:117
+#, python-brace-format
+msgid "`{attr_name}` is a Python keyword"
+msgstr "`{attr_name}` - ключевое слово Python"
+
+#: src/ini_config/ini_config.py:121
+#, python-brace-format
+msgid "`{attr_name}` is a Python magic method"
+msgstr "`{attr_name}` - магический метод Python"
+
+#: src/ini_config/ini_config.py:125
+#, python-brace-format
+msgid "`{attr_name}` is a built-in Python attribute"
+msgstr "`{attr_name}` - встроенный метод Python"
+
+#: src/ini_config/ini_config.py:143
+#, python-brace-format
+msgid "Incorrect attribute name for section `{section}` : {err}"
+msgstr "Неверное имя атрибута секции `{section}` : {err}"
+
+#: src/ini_config/ini_config.py:161
+#, python-brace-format
+msgid "Parameter name `{section}.{param}` is not a string"
+msgstr "Имя параметра `{section}.{param}` не является строкой"
+
+#: src/ini_config/ini_config.py:177
+#, python-brace-format
+msgid "Incorrect attribute name for parameter `{section}.{param}` : {err}"
+msgstr "Неверное имя атрибута параметра `{section}.{param}` : {err}"
+
+#: src/ini_config/ini_config.py:183
+#, python-brace-format
+msgid ""
+"Duplicate parameter `{section}.{param}` in expected configuration file "
+"structure"
+msgstr ""
+"Параметр `{section}.{param}` уже существует в ожидаемой структуре файла "
+"конфигурации"
+
+#: src/ini_config/ini_config.py:196
+#, python-brace-format
+msgid ""
+"Parameter type `{section}.{param}` is instance of `{type}`, expected callable"
+msgstr ""
+"Тип параметра `{section}.{param}` - экземпляр `{type}`, ожидается функция"
+
+#: src/ini_config/ini_config.py:208
+#, python-brace-format
+msgid ""
+"Error converting default value for parameter `{section}.{param}` to type "
+"`{type}`"
+msgstr ""
+"Ошибка преобразования значения по умолчанию параметра `{section}.{param}` к "
+"типу `{type}`"
+
+#: src/ini_config/ini_config.py:278
+#, python-format
+msgid "Locale is set, lang=`%s`"
+msgstr "Локаль установлена, lang=`%s`"
+
+#: src/ini_config/ini_config.py:284
+#, python-format
+msgid "Files for lang=`%s` not found in `%s` directory"
+msgstr "Файлы для lang=`%s` не найдены в каталоге `%s`"
+
+#: src/ini_config/ini_config.py:304
+#, python-brace-format
+msgid "Section name `{section}` is not a string"
+msgstr "Имя секции `{section}` не является строкой"
+
+#: src/ini_config/ini_config.py:310
+#, python-brace-format
+msgid "Duplicate section `{section}` in expected configuration file structure"
+msgstr ""
+"Секция `{section}` уже существует в ожидаемой структуре файлаконфигурации"
+
+#: src/ini_config/ini_config.py:315
+#, python-format
+msgid "Config section `%s` added to parser"
+msgstr "Секция `%s` добавлена в обработчик"
+
+#: src/ini_config/ini_config.py:331
+#, python-format
+msgid "Reading configuration file `%s`"
+msgstr "Чтение файла конфигурации `%s`"
+
+#: src/ini_config/ini_config.py:337
+#, python-format
+msgid "Error reading file `%s` : %s"
+msgstr "Ошибка чтения файла `%s` : %s"
+
+#: src/ini_config/ini_config.py:347
+#, python-brace-format
+msgid "Error parsing configuration file `{file}` : {err}"
+msgstr "Ошибка разбора файла конфигурации `{file}` : {err}"
+
+#: src/ini_config/ini_config.py:353
+msgid "Configuration file read successfully"
+msgstr "Файл конфигурации успешно прочитан"
+
+#: src/ini_config/ini_config.py:359
+#, python-format
+msgid "Checking configuration section `%s`"
+msgstr "Проверка секции конфигурации `%s`"
+
+#: src/ini_config/ini_config.py:363
+#, python-format
+msgid "Section `%s` found in file `%s`"
+msgstr "Секция `%s` найдена в файле `%s`"
+
+#: src/ini_config/ini_config.py:366
+#, python-format
+msgid "Section `%s` not found in file `%s`"
+msgstr "Секция `%s` не найдена в файле `%s`"
+
+#: src/ini_config/ini_config.py:371
+#, python-format
+msgid "Checking parameter `%s.%s`"
+msgstr "Проверка параметра `%s.%s`"
+
+#: src/ini_config/ini_config.py:380
+#, python-format
+msgid "Parameter found, value from file : `%s`"
+msgstr "Параметр найден, знчение из файла : `%s`"
+
+#: src/ini_config/ini_config.py:385
+#, python-format
+msgid "Parameter value converted to type `%s` : `%s`"
+msgstr "Значение параметра приведено к типу `%s` : `%s`"
+
+#: src/ini_config/ini_config.py:391
+#, python-format
+msgid "Error converting parameter `%s.%s`=`%s` to type `%s` : %s"
+msgstr "Ошибка приведения параметра `%s.%s`=`%s` к типу `%s` : %s"
+
+#: src/ini_config/ini_config.py:412
+#, python-brace-format
+msgid ", using default value : `{default}`"
+msgstr ", используется значение по умолчанию : `{default}`"
+
+#: src/ini_config/ini_config.py:420
+msgid ", default value is not set"
+msgstr ", значение по умолчанию не задано"
+
+#: src/ini_config/ini_config.py:457
+#, python-format
+msgid ""
+"Empty section `%s` is not defined in expected configuration file structure. "
+"Ignoring"
+msgstr ""
+"Пустая секция `%s` не определена в ожидаемой структуре файла конфигурации. "
+"Игнорируется"
+
+#: src/ini_config/ini_config.py:465
+#, python-format
+msgid "Unknown parameter `%s.%s`=`%s`. Ignoring"
+msgstr "Неизвестный параметр `%s.%s`=`%s`. Игнорируется"

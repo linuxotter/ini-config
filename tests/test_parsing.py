@@ -8,7 +8,7 @@ from ini_config import ConfigError, IniConfig
 
 
 def test_normal_operation(dummy_cfg: TestCfg, tmp_path: Path) -> None:
-    """Тест нормального (без ошибок) преобразования"""
+    """Test normal parsing without errors"""
 
     dummy_cfg.create_rnd_cfg()
     cfg_file = dummy_cfg.make_file(tmp_path)
@@ -48,7 +48,7 @@ def test_wrong_type(
     val: str,
     param_type: Callable[[str], Any],
 ) -> None:
-    """Тест неверного типа параметров"""
+    """Test wrong parameter type"""
 
     dummy_cfg.add_section(section)
     dummy_cfg.add_param(param, section, val, param_type)
@@ -63,14 +63,17 @@ def test_wrong_type(
         param_type_str = param_type.__name__
 
     assert (
-        f"Ошибка преобразования параметра {section}.{param}={val} "
-        f"к типу {param_type_str}"
+        f"Error converting parameter `{section}.{param}`=`{val}` "
+        f"to type `{param_type_str}`"
     ) in caplog.text
-    assert f"Отсутствует параметр {section}.{param}" == str(err.value)
+    assert str(err.value) == (
+        f"Parameter `{section}.{param}` is missing or it's value is incorrect, "
+        "default value is not set"
+    )
 
 
 def test_empty_section(dummy_cfg: TestCfg, tmp_path: Path) -> None:
-    """Тест обработки пустой секции"""
+    """Test parsing empty section in file"""
 
     dummy_cfg.add_section("Empty")
     cfg_file = dummy_cfg.make_file(tmp_path)
@@ -82,7 +85,7 @@ def test_empty_section(dummy_cfg: TestCfg, tmp_path: Path) -> None:
 
 
 def test_main_section(dummy_cfg: TestCfg, tmp_path: Path) -> None:
-    """Тест параметров в секции MAIN"""
+    """Test MAIN section parameters"""
 
     dummy_cfg.add_section("maiN")
     dummy_cfg.add_param("param1", "maiN", 345, str)
@@ -99,7 +102,7 @@ def test_main_section(dummy_cfg: TestCfg, tmp_path: Path) -> None:
 
 
 def test_repeating_sections(dummy_cfg: TestCfg, tmp_path: Path) -> None:
-    """Тест повторяющихся секций"""
+    """Test duplicate sections"""
 
     dummy_cfg.add_section("section_1")
     dummy_cfg.add_param("param_1", "section_1", 345, int)
@@ -121,11 +124,11 @@ def test_repeating_sections(dummy_cfg: TestCfg, tmp_path: Path) -> None:
     with pytest.raises(ConfigError) as err:
         cfg_parser.parse_file(cfg_file)
 
-    assert f"Ошибка разбора файла конфигурации {cfg_file}:" in str(err.value)
+    assert f"Error parsing configuration file `{cfg_file}` :" in str(err.value)
 
 
 def test_params_without_values(dummy_cfg: TestCfg, tmp_path: Path) -> None:
-    """Тест параметров без значений"""
+    """Test parameters without defined values"""
 
     cfg_file = tmp_path / "tmp_cfg"
     with open(cfg_file, "w") as f:
@@ -138,11 +141,11 @@ def test_params_without_values(dummy_cfg: TestCfg, tmp_path: Path) -> None:
     with pytest.raises(ConfigError) as err:
         cfg_parser.parse_file(str(cfg_file))
 
-    assert f"Ошибка разбора файла конфигурации {cfg_file}:" in str(err.value)
+    assert f"Error parsing configuration file `{cfg_file}` :" in str(err.value)
 
 
 def test_repeating_params_in_file(dummy_cfg: TestCfg, tmp_path: Path) -> None:
-    """Тест повторяющихся параметров"""
+    """Test duplicate parameters in same file section"""
 
     cfg_file = tmp_path / "tmp_cfg"
     with open(cfg_file, "w") as f:
@@ -155,10 +158,11 @@ def test_repeating_params_in_file(dummy_cfg: TestCfg, tmp_path: Path) -> None:
     with pytest.raises(ConfigError) as err:
         cfg_parser.parse_file(str(cfg_file))
 
-    assert f"Ошибка разбора файла конфигурации {cfg_file}:" in str(err.value)
+    assert f"Error parsing configuration file `{cfg_file}` :" in str(err.value)
 
 
 def test_repeating_params_in_parser(dummy_cfg: TestCfg) -> None:
+    """Test repeating parameters in parser tree"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", 123, int)
@@ -167,10 +171,13 @@ def test_repeating_params_in_parser(dummy_cfg: TestCfg) -> None:
     with pytest.raises(ConfigError) as err:
         dummy_cfg.make_parser()
 
-    assert str(err.value) == "Дублированный параметр main.param1"
+    assert str(err.value) == (
+        "Duplicate parameter `main.param1` in expected configuration file structure"
+    )
 
 
 def test_wrong_default_value(dummy_cfg: TestCfg) -> None:
+    """Test default value with wrong type"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", 123, int, default="string")
@@ -178,10 +185,13 @@ def test_wrong_default_value(dummy_cfg: TestCfg) -> None:
     with pytest.raises(ConfigError) as err:
         dummy_cfg.make_parser()
 
-    assert "Ошибка приведения значения по умолчанию" in str(err.value)
+    assert str(err.value) == (
+        "Error converting default value for parameter `main.param1` to type `int`"
+    )
 
 
 def test_no_value_with_default(dummy_cfg: TestCfg, tmp_path: Path) -> None:
+    """Test parameter missing from cfg file with default value set"""
 
     dummy_cfg.add_section("main")
     cfg_file = dummy_cfg.make_file(tmp_path)
@@ -194,6 +204,7 @@ def test_no_value_with_default(dummy_cfg: TestCfg, tmp_path: Path) -> None:
 
 
 def test_wrong_value_with_default(dummy_cfg: TestCfg, tmp_path: Path) -> None:
+    """Test parameter with wrong value in cfg file and defined default"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", "string", int, 345)
@@ -206,6 +217,7 @@ def test_wrong_value_with_default(dummy_cfg: TestCfg, tmp_path: Path) -> None:
 
 
 def test_empty_string_param(dummy_cfg: TestCfg, tmp_path: Path) -> None:
+    """Test param with empty string value"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", "", str, 123)
@@ -221,7 +233,7 @@ def test_unknown_params(
     tmp_path: Path,
     caplog,
 ) -> None:
-    """Проверка неизвестных параметров"""
+    """Test params not defined in parser tree"""
 
     dummy_cfg.create_rnd_cfg()
     cfg_file = dummy_cfg.make_file(tmp_path)
@@ -232,22 +244,25 @@ def test_unknown_params(
 
     cfg_parser.parse_file(cfg_file)
 
-    assert "Неизвестная пустая секция в файле конфигурации: empty" in caplog.text
-    assert "Неизвестный параметр main.unknown_param1" in caplog.text
+    assert (
+        "Empty section `empty` is not defined in expected "
+        "configuration file structure. Ignoring"
+    ) in caplog.text
+    assert "Unknown parameter `main.unknown_param1`" in caplog.text
     assert "DEFAULT" not in caplog.text
 
 
 test_cases = [
-    ("str with space", None, "не является корректным идентификатором"),
-    ("", None, "пустая строка"),
-    ("@wrong_name", None, "не является корректным идентификатором"),
-    ("1wrong_name", None, "не является корректным идентификатором"),
-    ("class", None, "является ключевым словом python"),
-    (123, None, "Название секции 123 не является строкой"),
+    ("str with space", None, "is not a valid Python identifier"),
+    ("", None, "empty string"),
+    ("@wrong_name", None, "is not a valid Python identifier"),
+    ("1wrong_name", None, "is not a valid Python identifier"),
+    ("class", None, "is a Python keyword"),
+    (123, None, "Section name `123` is not a string"),
     ("str with space", "str_with_space", None),
     ("@wrong_name", "correct_name", None),
-    (123, "correct_name", "Название секции 123 не является строкой"),
-    ("123", 123, "Ошибка именования свойства секции 123 : 123 не является строкой"),
+    (123, "correct_name", "Section name `123` is not a string"),
+    ("123", 123, "Incorrect attribute name for section `123` : `123` is not a string"),
 ]
 
 
@@ -278,19 +293,19 @@ def test_section_names(
 
 
 test_cases = [
-    ("str with space", None, "не является корректным идентификатором"),
-    ("", None, "пустая строка"),
-    ("@wrong_name", None, "не является корректным идентификатором"),
-    ("1wrong_name", None, "не является корректным идентификатором"),
-    ("class", None, "является ключевым словом python"),
-    (123, None, "Название параметра main.123 не является строкой"),
+    ("str with space", None, "is not a valid Python identifier"),
+    ("", None, "empty string"),
+    ("@wrong_name", None, "is not a valid Python identifier"),
+    ("1wrong_name", None, "is not a valid Python identifier"),
+    ("class", None, "is a Python keyword"),
+    (123, None, "Parameter name `main.123` is not a string"),
     ("str with space", "str_with_space", None),
     ("@wrong_name", "correct_name", None),
-    (123, "correct_name", "Название параметра main.123 не является строкой"),
+    (123, "correct_name", "Parameter name `main.123` is not a string"),
     (
         "123",
         123,
-        "Ошибка именования свойства параметра main.123 : 123 не является строкой",
+        ("Incorrect attribute name for parameter `main.123` : `123` is not a string"),
     ),
 ]
 
@@ -372,11 +387,16 @@ test_cases = [
     (5, None, 5, None),
     (-23, 7, 7, None),
     ("", 2, 2, None),
-    ("", None, None, "Отсутствует параметр main.param1"),
-    ("0", None, None, "Отсутствует параметр main.param1"),
-    ("-23", None, None, "Отсутствует параметр main.param1"),
-    ("no", None, None, "Отсутствует параметр main.param1"),
-    (1, 0, None, "Ошибка приведения значения по умолчанию для параметра main.param1"),
+    ("", None, None, "Parameter `main.param1` is missing or it's value is incorrect"),
+    ("0", None, None, "Parameter `main.param1` is missing or it's value is incorrect"),
+    (
+        "-23",
+        None,
+        None,
+        "Parameter `main.param1` is missing or it's value is incorrect",
+    ),
+    ("no", None, None, "Parameter `main.param1` is missing or it's value is incorrect"),
+    (1, 0, None, "Error converting default value for parameter `main.param1`"),
 ]
 
 
@@ -408,18 +428,11 @@ def test_user_conversion(
         assert err_msg in str(err.value)
 
 
-test_cases = [
-    ("__dict__", "является магическим методом Python"),
-    ("__class__", "является магическим методом Python"),
-    ("items", "является встроенным атрибутом Python"),
-    ("__str__", "является магическим методом Python"),
-]
+test_cases = ["__dict__", "__class__", "items", "__str__"]
 
 
-@pytest.mark.parametrize("attr_name, err_msg", test_cases)
-def test_attr_name_overrides_attributes(
-    dummy_cfg: TestCfg, attr_name: str, err_msg: str
-) -> None:
+@pytest.mark.parametrize("attr_name", test_cases)
+def test_attr_name_overrides_attributes(dummy_cfg: TestCfg, attr_name: str) -> None:
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", "value", str, attr_name="__dict__")
@@ -427,7 +440,7 @@ def test_attr_name_overrides_attributes(
     with pytest.raises(ConfigError) as err:
         dummy_cfg.make_parser()
 
-    assert "является магическим методом Python" in str(err.value)
+    assert "is a Python magic method" in str(err.value)
 
 
 def test_param_type(dummy_cfg: TestCfg) -> None:
@@ -443,7 +456,9 @@ def test_param_type(dummy_cfg: TestCfg) -> None:
     with pytest.raises(ConfigError) as err:
         dummy_cfg.make_parser()
 
-    assert str(err.value) == "Тип параметра main.param_1 None не является функцией"
+    assert str(err.value) == (
+        "Parameter type `main.param_1` is instance of `None`, expected callable"
+    )
 
 
 def test_repeating_attr_names(dummy_cfg: TestCfg, tmp_path: Path) -> None:
@@ -475,7 +490,7 @@ def test_default_value_in_logs(dummy_cfg: TestCfg, tmp_path, caplog) -> None:
     cfg = cfg_parser.parse_file(cfg_file)
 
     assert hasattr(cfg, "test_param") and getattr(cfg, "test_param")
-    assert "используется значение по умолчанию : test_val" in caplog.text
+    assert "using default value : `test_val`" in caplog.text
 
 
 def test_empty_cfg_file(dummy_cfg: TestCfg, tmp_path: Path) -> None:
@@ -526,7 +541,7 @@ def test_no_cfg_files_with_all_defult_params(caplog) -> None:
 
     cfg = cfg_parser.parse_file("not_exists")
 
-    assert "Ошибка чтения файла not_exists:" in caplog.text
+    assert "Error reading file `not_exists` :" in caplog.text
     assert getattr(cfg, "default_param_1") == 1
     assert getattr(cfg, "default_param_2") == 2
 
@@ -554,4 +569,4 @@ def test_no_section_for_default_params(
     assert getattr(cfg, "required_param") == "required_val"
     assert (test_section := getattr(cfg, "test"))
     assert getattr(test_section, "default_param") == "default_val"
-    assert f"Секция test не найдена в файле {cfg_file}" in caplog.text
+    assert f"Section `test` not found in file `{cfg_file}`" in caplog.text
