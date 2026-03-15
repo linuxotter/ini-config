@@ -108,15 +108,21 @@ class ConfigSection:
             raise ValueError(_("empty string"))
         elif not attr_name.isidentifier():
             raise ValueError(
-                _("{attr_name} is not a valid identifier").format(attr_name)
+                _("{attr_name} is not a valid identifier").format(attr_name=attr_name)
             )
         elif keyword.iskeyword(attr_name):
-            raise ValueError(_("{attr_name} is a Python keyword").format(attr_name))
+            raise ValueError(
+                _("{attr_name} is a Python keyword").format(attr_name=attr_name)
+            )
         elif attr_name.startswith("__") and attr_name.endswith("__"):
-            raise ValueError(_("{attr_name} is a Python magic word").format(attr_name))
+            raise ValueError(
+                _("{attr_name} is a Python magic method").format(attr_name=attr_name)
+            )
         elif attr_name in dir(object):
             raise ValueError(
-                _("{attr_name} is a built-in Python attribute").format(attr_name)
+                _("{attr_name} is a built-in Python attribute").format(
+                    attr_name=attr_name
+                )
             )
         else:
             return attr_name.lower()
@@ -132,7 +138,7 @@ class ConfigSection:
                 self._attr_name = self._chk_attr_name(section_name)
         except ValueError as err:
             raise ConfigError(
-                _("Incorrect attribute name for section{section} : {err}").format(
+                _("Incorrect attribute name for section {section} : {err}").format(
                     section=self._section_name, err=err
                 )
             )
@@ -184,7 +190,7 @@ class ConfigSection:
         # Check if param_type is callable
         if not callable(param_type):
             raise ConfigError(
-                _("Parameter {section}.{param} {type} is not callable").format(
+                _("Parameter {section}.{param} is {type}, expected callable").format(
                     section=self._section_name, param=param_name, type=param_type
                 )
             )
@@ -400,7 +406,7 @@ class IniConfig:
                         val = param.converted_default
                         is_missing = False
                         logger.warning(
-                            _(log_msg + ", using default value {default}").format(
+                            _(log_msg + ", using default value : {default}").format(
                                 section=section_name,
                                 param=param.param_name,
                                 default=param.default,
