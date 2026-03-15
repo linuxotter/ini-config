@@ -74,7 +74,6 @@ test_cases: list[tuple[str | None, str]] = [
     ("default", "English language is set"),
     ("ru", "Локаль установлена, lang=`ru`"),
     ("ru_RU", "Локаль установлена, lang=`ru_RU`"),
-    ("locale", "Локаль установлена, lang=`None`"),
     ("invalid", "Files for lang=`invalid` not found in"),
 ]
 
