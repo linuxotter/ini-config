@@ -14,11 +14,11 @@ def test_no_cfg_file_with_required_params(caplog) -> None:
         config_parser.parse_file("not_exists")
 
     assert err.value.__str__() == (
-        "Parameter main.required_param is missing or it's value is incorrect, "
+        "Parameter `main.required_param` is missing or it's value is incorrect, "
         "default value is not set"
     )
 
-    assert "Error reading file not_exists :" in caplog.text
+    assert "Error reading file `not_exists` :" in caplog.text
 
 
 def test_unreadable_cfg_file(tmp_path: Path, caplog) -> None:
@@ -36,10 +36,10 @@ def test_unreadable_cfg_file(tmp_path: Path, caplog) -> None:
         config_parser.parse_file(unreadable_cfg)
 
     assert err.value.__str__() == (
-        "Parameter main.required_param is missing or it's value is incorrect, "
+        "Parameter `main.required_param` is missing or it's value is incorrect, "
         "default value is not set"
     )
-    assert f"Error reading file {unreadable_cfg} :" in caplog.text
+    assert f"Error reading file `{unreadable_cfg}` :" in caplog.text
 
     os.chmod(unreadable_cfg, 0x777)
 
@@ -56,10 +56,10 @@ def test_unreadable_cfg_dir(tmp_path: Path, caplog) -> None:
         config_parser.parse_file(unreadable_cfg_dir / "cfg_file")
 
     assert err.value.__str__() == (
-        "Parameter main.required_param is missing or it's value is incorrect, "
+        "Parameter `main.required_param` is missing or it's value is incorrect, "
         "default value is not set"
     )
-    assert f"Error reading file {unreadable_cfg_dir}/cfg_file" in caplog.text
+    assert f"Error reading file `{unreadable_cfg_dir}/cfg_file`" in caplog.text
     os.chmod(tmp_path, 0x777)
 
 
@@ -74,4 +74,4 @@ def test_corrupted_cfg_file(tmp_path: Path) -> None:
     with pytest.raises(ConfigError) as err:
         config.parse_file(str(corrupted_cfg))
 
-    assert f"Error parsing configuration file {corrupted_cfg}" in str(err.value)
+    assert f"Error parsing configuration file `{corrupted_cfg}`" in str(err.value)
