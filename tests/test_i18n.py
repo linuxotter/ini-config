@@ -14,15 +14,15 @@ DOMAIN = "ini_config"
 
 def test_locales_dir_structure() -> None:
 
-    print(LOCALES_DIR.resolve())
     dir_structure = os.scandir(LOCALES_DIR.resolve())
+
+    assert LOCALES_DIR.exists()
 
     mo_file_mtime: float | None = None
     po_file_mtime: float | None = None
     pot_file_mtime: float | None = None
 
     for item in dir_structure:
-        print(item.name)
         if item.is_dir():
             po_file = Path(item.path) / f"LC_MESSAGES/{DOMAIN}.po"
             mo_file = Path(str(po_file).replace(".po", ".mo"))
