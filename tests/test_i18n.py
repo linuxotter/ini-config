@@ -16,8 +16,6 @@ def test_locales_dir_structure() -> None:
 
     dir_structure = os.scandir(LOCALES_DIR.resolve())
 
-    assert LOCALES_DIR.exists()
-
     mo_file_mtime: float | None = None
     po_file_mtime: float | None = None
     pot_file_mtime: float | None = None
@@ -35,13 +33,13 @@ def test_locales_dir_structure() -> None:
             po_file_mtime = po_file.stat().st_mtime
             mo_file_mtime = mo_file.stat().st_mtime
 
-        pot_file = Path(LOCALES_DIR / "ini_config.pot")
-        assert pot_file.exists()
-        pot_file_mtime = pot_file.stat().st_mtime
+    pot_file = Path(LOCALES_DIR / "ini_config.pot")
+    assert pot_file.exists()
+    pot_file_mtime = pot_file.stat().st_mtime
 
-        assert po_file_mtime is not None and mo_file_mtime is not None
-        assert mo_file_mtime >= po_file_mtime
-        assert po_file_mtime >= pot_file_mtime
+    assert po_file_mtime is not None and mo_file_mtime is not None
+    assert mo_file_mtime >= po_file_mtime
+    assert po_file_mtime >= pot_file_mtime
 
 
 po_files = glob.glob("**/*.po", recursive=True)
