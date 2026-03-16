@@ -8,7 +8,11 @@ from ini_config import IniConfig
 
 
 class TestCfg:
-    """Эмуляция загрузки конфигурации из файла"""
+    """
+    Mocking class for config prsing
+
+    Creates test parser and configuration file for test purposes
+    """
 
     true_cases = ("true", "yes", "1", "on", "enable")
     false_cases = ("false", "no", "0", "off", "disable")
@@ -23,7 +27,7 @@ class TestCfg:
         self._param_attr_name: dict[str, dict[str, str | None]] = {}
 
     def create_rnd_cfg(self) -> None:
-        """Создание случайной корректной конфигурации"""
+        """Creates random valid configurtion tree and file"""
 
         for section_num in range(1, random.randint(2, 5)):
             section_name = f"Section_{section_num}"
@@ -52,7 +56,8 @@ class TestCfg:
                 self._param_attr_name[section_name][param_name] = None
 
     def add_section(self, name: str, attr_name: str | None = None) -> None:
-        """Добавление секции конфигурации"""
+        """Add section to expected configuration tree"""
+
         self._config[name] = {}
         self._param_types[name] = {}
         self._default[name] = {}
@@ -68,7 +73,8 @@ class TestCfg:
         default: Any = None,
         attr_name: str | None = None,
     ) -> None:
-        """Добавление параметра"""
+        """Add parameter to expected configuration tree"""
+
         self._config[section][name] = val
         self._param_types[section][name] = type
         if default is not None:
@@ -78,7 +84,7 @@ class TestCfg:
         self._param_attr_name[section][name] = attr_name
 
     def make_file(self, tmp_path: Path) -> str:
-        """Создание тестового файла конфигурации"""
+        """Create config file based on expected config tree"""
 
         cfg_file = tmp_path / "tmp_cfg"
         with open(cfg_file, "w") as f:
@@ -91,6 +97,7 @@ class TestCfg:
         return str(cfg_file)
 
     def make_parser(self):
+        """Create IniConfig parser based on expected config tree"""
 
         cfg_parser = IniConfig()
 
@@ -109,9 +116,13 @@ class TestCfg:
     def get_config(
         self,
     ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Callable[[str], Any]]]]:
+        """Return config dict and parameter types"""
+
         return self._config, self._param_types
 
     def clear(self) -> None:
+        """Clear TestCfg object"""
+
         self._config = {}
         self._param_types = {}
 
@@ -124,6 +135,8 @@ def dummy_cfg() -> TestCfg:
 @pytest.fixture
 def positive_int() -> Callable[[Any], Any]:
     def _positive_int(param: Any) -> int:
+        """Convert to positive int type"""
+
         try:
             param = int(param)
         except:

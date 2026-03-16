@@ -274,7 +274,7 @@ def test_section_names(
     attr_name: Any | None,
     err_msg: str | None,
 ) -> None:
-    """Тест названий секций с пробелами"""
+    """Test section name with spaces"""
 
     dummy_cfg.add_section(section_name, attr_name)
     if err_msg:
@@ -318,6 +318,7 @@ def test_param_names(
     attr_name: Any | None,
     err_msg: str | None,
 ) -> None:
+    """Test invalid parameter names"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param(param_name, "main", "value", str, attr_name=attr_name)
@@ -352,6 +353,7 @@ test_cases = [
 def test_bool(
     dummy_cfg: TestCfg, tmp_path: Path, val: str, default: Any, expected_val: bool
 ) -> None:
+    """Test _str_to_bool conversion"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("bool", "main", val, bool, default)
@@ -372,6 +374,7 @@ def test_default_values(
     default_val: Any,
     param_type: Callable[[Any], Any],
 ) -> None:
+    """Test default values"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", "", param_type, default_val)
@@ -410,6 +413,7 @@ def test_user_conversion(
     expected_val: Any,
     err_msg: str | None,
 ) -> None:
+    """Test user type conversion function"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", val, positive_int, default_val)
@@ -433,6 +437,7 @@ test_cases = ["__dict__", "__class__", "items", "__str__"]
 
 @pytest.mark.parametrize("attr_name", test_cases)
 def test_attr_name_overrides_attributes(dummy_cfg: TestCfg, attr_name: str) -> None:
+    """Test invalid attribute naming"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param("param1", "main", "value", str, attr_name="__dict__")
@@ -444,6 +449,7 @@ def test_attr_name_overrides_attributes(dummy_cfg: TestCfg, attr_name: str) -> N
 
 
 def test_param_type(dummy_cfg: TestCfg) -> None:
+    """Test param_type is not callable"""
 
     dummy_cfg.add_section("main")
     dummy_cfg.add_param(
@@ -462,6 +468,7 @@ def test_param_type(dummy_cfg: TestCfg) -> None:
 
 
 def test_repeating_attr_names(dummy_cfg: TestCfg, tmp_path: Path) -> None:
+    """Test duplicate attribute names"""
 
     dummy_cfg.add_section("main", "duplicate")
     dummy_cfg.add_section("log", "duplicate")
@@ -473,6 +480,7 @@ def test_repeating_attr_names(dummy_cfg: TestCfg, tmp_path: Path) -> None:
 
 
 def test_default_value_in_logs(dummy_cfg: TestCfg, tmp_path, caplog) -> None:
+    """Test default value format in log messages"""
 
     def _test_type(val: Any) -> bool:
         if not val:
@@ -494,6 +502,7 @@ def test_default_value_in_logs(dummy_cfg: TestCfg, tmp_path, caplog) -> None:
 
 
 def test_empty_cfg_file(dummy_cfg: TestCfg, tmp_path: Path) -> None:
+    """Test parsing with empty config file and all optional parameters"""
 
     cfg_file = tmp_path / "cfg_file"
     with open(cfg_file, "w"):
@@ -509,6 +518,7 @@ def test_empty_cfg_file(dummy_cfg: TestCfg, tmp_path: Path) -> None:
 def test_parameter_with_default_val_with_no_section_in_cfg(
     tmp_path: Path, dummy_cfg: TestCfg
 ) -> None:
+    """Test missing section in file for optional parameter"""
 
     cfg_file = tmp_path / "cfg_file"
     with open(cfg_file, "w") as f:
@@ -530,6 +540,7 @@ def test_parameter_with_default_val_with_no_section_in_cfg(
 
 
 def test_no_cfg_files_with_all_defult_params(caplog) -> None:
+    """Test missing config file with all optional parameters"""
 
     cfg_parser = IniConfig()
     cfg_parser.add_section("main").add_param(
@@ -553,6 +564,7 @@ def test_no_cfg_files_with_all_defult_params(caplog) -> None:
 def test_no_section_for_default_params(
     dummy_cfg: TestCfg, tmp_path: Path, caplog
 ) -> None:
+    """Test optional parameters with no section in config file"""
 
     test_logger = logging.getLogger()
     test_logger.setLevel(logging.DEBUG)
