@@ -16,9 +16,10 @@ _ = t.gettext
 
 class ConfigError(Exception):
     """
-    Класс ошибки конфигурации
+    Configuration error class
 
-    Наследуется от класса Exception, не имеет дополнительных свойств
+    This class is inherited from Exception class
+    Does not have any special properties
     """
 
     pass
@@ -27,9 +28,9 @@ class ConfigError(Exception):
 @dataclass
 class Parameter:
     """
-    Объект параметра конфигурации
+    Configuration parameter object
 
-    Содержит информацию об отдельном параметре конфигурации.
+    Holds data for a single configuration parameter
     """
 
     param_name: str
@@ -41,11 +42,11 @@ class Parameter:
 
 class ConfigNamespace:
     """
-    Объект конфигурации
+    Config Namespace object
 
-    Для каждой секции конфигурации создается объект, имеющий атрибуты
-    параметр = значение. Объект итоговой конфигурации имеет объединяет
-    в себе объекты секций, имея атрибуты имя_секции = объект_секции.
+    Namespace object is created for each configuration section. It has attributes
+    ConfigNamespace.parameter = value. The whole configuration is stored in similar
+    Namespace object containing all section objects.
     """
 
     def __init__(self, **kwargs) -> None:
@@ -57,30 +58,33 @@ class ConfigNamespace:
         return f"Config({items})"
 
     def __bool__(self) -> bool:
-        """Если у объекта есть ключи, возвращает True, иначе False"""
+        """Retuns True, if object has any keys, otherwise False"""
         return bool(self.__dict__)
 
+    # TODO: Translate and add test
     def __getattr__(self, name: str) -> Any:
         raise AttributeError(f"'{type(self).__name__}' у объекта нет атрибута '{name}'")
 
 
 class ConfigSection:
     """
-    Класс создания секции конфигурации
+    Config section class
 
-    Описывает отдельную секцию конфигурацию с ожидаемыми в ней параметрами
+    The class describes one config section with expected parameters
     """
 
     @staticmethod
     def _str_to_bool(param: Any) -> bool:
         """
-        Конвертация строки в булево значение
+        Converts str to bool
 
-        Заменяет класс bool при добавлении параметра для корректного
-        преобразования строки в булево значение
+        This function used with bool parameters to correctly convert string value
+        to bool
         """
 
+        # Supported aliases for True
         true_cases = ("true", "yes", "1", "on", "enable")
+        # Supported aliases for False
         false_cases = ("false", "no", "0", "off", "disable")
 
         if isinstance(param, bool):
@@ -95,9 +99,9 @@ class ConfigSection:
     @staticmethod
     def _chk_attr_name(attr_name: str) -> str:
         """
-        Проверка имени атрибута
+        Attribute name check
 
-        Проверяет соответствие строки правилам именования атрибутов в python.
+        Checks if attribute name meet all Python requirements
         """
 
         if not isinstance(attr_name, str):
@@ -154,7 +158,7 @@ class ConfigSection:
         param_type: Callable[[Any], Any] = str,
         default: Any = None,
     ):
-        """Добавляет параметр в секцию"""
+        """Adds parameter to config section"""
 
         if not isinstance(param_name, str):
             raise ConfigError(
@@ -186,7 +190,7 @@ class ConfigSection:
                 ).format(section=self._section_name, param=param_name)
             )
 
-        # Тип bool заменяется на метод _str_to_bool
+        # Bool type is changed to _str_to_bool
         if param_type is bool:
             param_type = self._str_to_bool
 
@@ -199,7 +203,7 @@ class ConfigSection:
                 ).format(section=self._section_name, param=param_name, type=param_type)
             )
 
-        # Проверка типа значения по умолчанию
+        # Default value check
         if default is not None:
             try:
                 converted_default = param_type(default)
@@ -234,23 +238,30 @@ class ConfigSection:
 
 
 class IniConfig:
-    """Класс обработчика конфигурации"""
+    """
+    Config parser class
+
+    Creates an instance of config parser object. It is used to describe expected
+    config file structure, define required and optional parameters, parse
+    config file, extract parameters and store them in ConfigNamespace object for
+    further access
+    """
 
     @staticmethod
     def _normalize_ini(content: str) -> str:
-        """Преобразование имен секций файла INI в нижний регистр"""
+        """Converts section names from config file to lower case"""
 
         normalized_ini: list[str] = []
 
         for line in content.splitlines():
             stripped_line = line.strip()
-            # Преобразование названия секции в нижний регистр
+            # Convert section name to lower case
             if stripped_line.startswith("[") and stripped_line.endswith("]"):
                 normalized_ini.append(stripped_line.lower())
-            # Пропуск пустых строк
+            # Exclude empty lines
             elif not stripped_line:
                 continue
-            # Остальные строки остаются неизменными
+            # All other lines are not changed
             else:
                 normalized_ini.append(stripped_line)
 
@@ -258,6 +269,12 @@ class IniConfig:
 
     @staticmethod
     def set_language(lang: str | None = None) -> None:
+        """
+        Set the modules language
+
+        All log and Exception messages will be in selected language, if supported.
+        If not, English will be used by default.
+        """
 
         global _
 
@@ -288,18 +305,17 @@ class IniConfig:
                 )
 
     def __init__(self) -> None:
-        self._sections: dict[
-            str, ConfigSection
-        ] = {}  # Словарь, содержащий объекты секций
+        # Dictionary with ConfigSection objects. The key is section name
+        self._sections: dict[str, ConfigSection] = {}
 
     def add_section(
         self, section_name: str, attr_name: str | None = None
     ) -> ConfigSection:
         """
-        Добавляет секцию конфигурации
+        Add config section
 
-        Добавляет секцию конфигурации, поиск которой будет выполняться в
-        файле
+        Adds section to the parser. Tells parser to search section with given
+        name in configuration file
         """
 
         if not isinstance(section_name, str):
@@ -328,14 +344,14 @@ class IniConfig:
 
     def parse_file(self, cfg_file: str | Path) -> ConfigNamespace:
         """
-        Чтение файла конфигурации и проверка значений
+        Reads configuration file and parses extracted parameters
 
-        Читает файл конфигурации, разбирает его на секции и параметры,
-        производит проверку полученных параметров на основании данных,
-        добавленных в обработчик
+        Tries to extract parameters and their values from configuration
+        file, compares extracted parameters to the expected config
+        structure, returns ConfigNamespace object with config parameters.
         """
 
-        # Преобразование пути в объект Path, если в аргументах передана строка
+        # Cionvert cfg_file argument to Path object in case str was passed
         cfg_file = Path(cfg_file)
 
         logger.info(_("Reading configuration file `%s`"), cfg_file)
@@ -362,7 +378,7 @@ class IniConfig:
         if not cfg_file_read_err:
             logger.info(_("Configuration file read successfully"))
 
-        # Создание пустого объекта конфигурации
+        # Create empty Confignamespace object to store parsed config parameters
         namespace = ConfigNamespace()
 
         for section_name, section_obj in self._sections.items():
@@ -385,8 +401,7 @@ class IniConfig:
                 val = None
                 is_missing = True
 
-                # Проверка наличия параметра и получение его значения
-                # из файла
+                # Check if parameter is in file and extract it's value
                 if section_in_file and param.param_name in config[section_name]:
                     raw_val = config[section_name][param.param_name]
                     logger.debug(_("Parameter found, value from file : `%s`"), raw_val)
@@ -410,7 +425,7 @@ class IniConfig:
                             err,
                         )
                     finally:
-                        # Удаление обработанного параметра из объекта configparser
+                        # Delete processed parameter from IniConfig list
                         del config[section_name][param.param_name]
 
                 if is_missing:
@@ -436,33 +451,31 @@ class IniConfig:
                             )
                         )
 
-                # Добавление параметра в объект секции
+                # Add parameter to section ConfigNamespace object
                 setattr(section_namespace, param.attr_name, val)
 
-            # Добавление объекта секции в объект конфигурации
-            # Если секция MAIN, то параметры добавляются как ключи
-            # корневого объекта: объект.параметр
+            # Add section objects to root config object
+            # If section name is MAIN, add parameters directly to root
+            # config object : root_config.parameter
             if section_name == "main":
                 for k, v in section_namespace.__dict__.items():
                     setattr(namespace, k, v)
-            # Для других секций создается структура объект.секция.параметр
+            # For other section create structure root_config.section.parameter
             else:
                 setattr(namespace, section_obj._attr_name, section_namespace)
 
-            # Если в секции не осталось необработанных параметров,
-            # удаляем ее из объекта configparser
+            # If all section's parameters are processed, delete section
+            # from IniConfig object
             if config.has_section(section_name) and not config[section_name]:
                 del config[section_name]
 
-        # Проверяем, остались ли после разбора конфигурации
-        # необработанные параметры и секции. Если такие есть,
-        # игнорируем их как неизвестные, но вносим информацию
-        # в журнал
+        # All parameters and sections left in IniConfig list
+        # are considered unknown, logged and ignored.
         if config:
             for section in config:
                 if not config[section]:
-                    # Пропускаем секцию DEFAULT, по умолчанию создается
-                    # при разборе файла INI
+                    # Section DEFAULT is ignored, it is created by configparser
+                    # by default.
                     if section == "DEFAULT":
                         continue
                     else:
